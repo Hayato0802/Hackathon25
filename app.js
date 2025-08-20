@@ -1136,3 +1136,138 @@ function submitRating() {
         showNotification(`${currentChatUser.name}さんもあなたを★5と評価しました！`, 'info');
     }, 2000);
 }
+
+// 地図表示切り替え
+function toggleView(viewType) {
+    document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelectorAll('.view-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    
+    if (viewType === 'map') {
+        document.querySelector('.view-btn:nth-child(2)').classList.add('active');
+        document.getElementById('map-view').classList.add('active');
+        initializeMap();
+    } else {
+        document.querySelector('.view-btn:nth-child(1)').classList.add('active');
+        document.getElementById('list-view').classList.add('active');
+    }
+}
+
+// Geolonia地図の初期化
+let mapInstance = null;
+let markers = [];
+
+function initializeMap() {
+    // 地図がすでに初期化されている場合はスキップ
+    if (mapInstance) {
+        updateMarkers();
+        return;
+    }
+    
+    // Geoloniaの地図初期化を待つ
+    setTimeout(() => {
+        const mapElement = document.getElementById('geolonia-map');
+        if (mapElement && window.geolonia) {
+            // 地図インスタンスを取得
+            mapInstance = mapElement.geolonia;
+            
+            // 現在位置を設定（デモ用）
+            const myLat = 35.681;
+            const myLng = 139.767;
+            
+            // 自分の位置マーカー
+            addMapMarker(myLat, myLng, {
+                name: 'あなたの位置',
+                icon: '📍',
+                isMyLocation: true
+            });
+            
+            // マッチング候補のマーカーを追加
+            const myInventory = appState.inventory.map(item => item.name);
+            
+            dummyUsers.forEach(user => {
+                // マッチ度計算
+                const matchingNeeds = user.needs.filter(need => myInventory.includes(need));
+                const needsMatchScore = (matchingNeeds.length / user.needs.length) * 100;
+                const giveBalance = user.givePoints - user.takePoints;
+                const totalMatchScore = Math.round(
+                    (needsMatchScore * 0.5) + 
+                    (Math.min(giveBalance / 10, 50) * 0.3) + 
+                    20 // 距離スコア
+                );
+                
+                // マーカーの色を決定
+                let markerColor = '#dc3545'; // 赤
+                if (totalMatchScore >= 80) markerColor = '#28a745'; // 緑
+                else if (totalMatchScore >= 60) markerColor = '#ffc107'; // 黄
+                
+                addMapMarker(user.lat, user.lng, {
+                    ...user,
+                    matchScore: totalMatchScore,
+                    matchingNeeds: matchingNeeds,
+                    markerColor: markerColor
+                });
+            });
+        }
+    }, 1000);
+}
+
+// マーカー追加
+function addMapMarker(lat, lng, userData) {
+    if (!mapInstance) return;
+    
+    // カスタムマーカーHTML
+    const markerHtml = userData.isMyLocation ? 
+        `<div style="font-size: 24px;">${userData.icon}</div>` :
+        `<div style="background: ${userData.markerColor}; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">${userData.matchScore}%</div>`;
+    
+    // マーカー要素を作成
+    const el = document.createElement('div');
+    el.innerHTML = markerHtml;
+    
+    // マーカーを地図に追加
+    const marker = new mapboxgl.Marker(el)
+        .setLngLat([lng, lat])
+        .addTo(mapInstance);
+    
+    // ポップアップを追加（自分の位置以外）
+    if (!userData.isMyLocation) {
+        const popupHtml = `
+            <div class="map-popup">
+                <h4>${userData.avatar} ${userData.name}</h4>
+                <div class="user-info-popup">
+                    <p><strong>マッチ度:</strong> ${userData.matchScore}%</p>
+                    <p><strong>距離:</strong> ${userData.distance}</p>
+                    <p><strong>評価:</strong> ⭐${userData.rating}</p>
+                    <p><strong>欲しい食材:</strong> ${userData.needs.join(', ')}</p>
+                    ${userData.matchingNeeds.length > 0 ? 
+                        `<p style="color: #28a745; font-weight: bold;">✅ ${userData.matchingNeeds.join(', ')}を探しています！</p>` : ''}
+                </div>
+                <div class="popup-actions">
+                    <button class="popup-btn primary-btn" onclick="openChat(${userData.id})">調整する</button>
+                    <button class="popup-btn action-btn" onclick="acceptMatch(${userData.id})">マッチング</button>
+                </div>
+            </div>
+        `;
+        
+        const popup = new mapboxgl.Popup({ offset: 25 })
+            .setHTML(popupHtml);
+        
+        marker.setPopup(popup);
+    }
+    
+    markers.push(marker);
+}
+
+// マーカー更新
+function updateMarkers() {
+    // 既存のマーカーをクリア
+    markers.forEach(marker => marker.remove());
+    markers = [];
+    
+    // 新しいマーカーを追加
+    initializeMap();
+}

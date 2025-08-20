@@ -985,6 +985,95 @@ body {
     }
 }
 
+/* 地図表示関連 */
+.view-toggle {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: center;
+}
+
+.view-btn {
+    padding: 10px 20px;
+    border: 2px solid #e9ecef;
+    background: white;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 16px;
+}
+
+.view-btn:hover {
+    border-color: #667eea;
+    background-color: #f8f9fa;
+}
+
+.view-btn.active {
+    background-color: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.view-content {
+    display: none;
+}
+
+.view-content.active {
+    display: block;
+}
+
+.map-container {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.map-legend {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.map-legend h4 {
+    margin-bottom: 10px;
+    color: #495057;
+}
+
+.map-legend div {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+/* 地図ポップアップ */
+.map-popup {
+    max-width: 250px;
+}
+
+.map-popup h4 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.map-popup .user-info-popup {
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.map-popup .popup-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 5px;
+}
+
+.map-popup .popup-btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
 /* レスポンシブ対応（モバイル） */
 @media (max-width: 768px) {
     .matching-item.enhanced {
@@ -1006,5 +1095,9 @@ body {
         right: 10px;
         left: 10px;
         max-width: none;
+    }
+    
+    #geolonia-map {
+        height: 400px !important;
     }
 }

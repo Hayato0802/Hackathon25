@@ -58,18 +58,42 @@
             <!-- おすそ分けタブ -->
             <div id="share-tab" class="tab-content">
                 <h2>おすそ分け</h2>
+                <div class="view-toggle">
+                    <button class="view-btn active" onclick="toggleView('list')">📋 リスト表示</button>
+                    <button class="view-btn" onclick="toggleView('map')">🗺️ 地図表示</button>
+                </div>
                 <div class="share-sections">
-                    <div class="share-section">
-                        <h3>提供可能な食品</h3>
-                        <div id="shareable-items" class="item-list"></div>
+                    <div id="list-view" class="view-content active">
+                        <div class="share-section">
+                            <h3>提供可能な食品</h3>
+                            <div id="shareable-items" class="item-list"></div>
+                        </div>
+                        <div class="share-section">
+                            <h3>マッチング候補</h3>
+                            <div id="matching-list" class="matching-list"></div>
+                        </div>
+                        <div class="share-section">
+                            <h3>取引履歴</h3>
+                            <div id="transaction-history" class="transaction-list"></div>
+                        </div>
                     </div>
-                    <div class="share-section">
-                        <h3>マッチング候補</h3>
-                        <div id="matching-list" class="matching-list"></div>
-                    </div>
-                    <div class="share-section">
-                        <h3>取引履歴</h3>
-                        <div id="transaction-history" class="transaction-list"></div>
+                    <div id="map-view" class="view-content">
+                        <div class="map-container">
+                            <div id="geolonia-map" class="geolonia" 
+                                 data-lat="35.681" 
+                                 data-lng="139.767" 
+                                 data-zoom="14"
+                                 data-marker="off"
+                                 style="width: 100%; height: 600px;">
+                            </div>
+                        </div>
+                        <div class="map-legend">
+                            <h4>マーカーの説明</h4>
+                            <div><span style="color: #28a745;">●</span> マッチ度80%以上</div>
+                            <div><span style="color: #ffc107;">●</span> マッチ度60-79%</div>
+                            <div><span style="color: #dc3545;">●</span> マッチ度60%未満</div>
+                            <div><span style="color: #007bff;">📍</span> あなたの位置</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -202,6 +226,9 @@
         </div>
     </div>
 
+    <!-- Geolonia Maps -->
+    <script type="text/javascript" src="https://cdn.geolonia.com/v1/embed?geolonia-api-key=YOUR-API-KEY"></script>
+    
     <script src="data.js"></script>
     <script src="app.js"></script>
 </body>
