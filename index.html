@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>フードロス対策アプリ - FoodShare</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- ヘッダー -->
+        <header class="app-header">
+            <h1>🥗 FoodShare</h1>
+            <div class="user-info">
+                <span class="user-name">山田太郎</span>
+                <span class="user-points">Give: 150pt / Take: 30pt</span>
+                <span class="user-rank">🥇 ゴールドGiver</span>
+            </div>
+        </header>
+
+        <!-- ナビゲーション -->
+        <nav class="app-nav">
+            <button class="nav-btn active" data-tab="register">食品登録</button>
+            <button class="nav-btn" data-tab="inventory">在庫一覧</button>
+            <button class="nav-btn" data-tab="share">おすそ分け</button>
+            <button class="nav-btn" data-tab="recipe">レシピ提案</button>
+            <button class="nav-btn" data-tab="stats">統計</button>
+        </nav>
+
+        <!-- メインコンテンツ -->
+        <main class="app-main">
+            <!-- 通知エリア -->
+            <div id="notification-area" class="notification-area"></div>
+
+            <!-- 食品登録タブ -->
+            <div id="register-tab" class="tab-content active">
+                <h2>食品登録</h2>
+                <div class="input-section">
+                    <textarea id="food-input" class="food-input" 
+                        placeholder="例: トマト3個、卵6個 明日まで、牛乳1本"></textarea>
+                    <button id="voice-input-btn" class="voice-btn">🎤 音声入力</button>
+                    <button id="register-btn" class="primary-btn">登録する</button>
+                </div>
+                <div id="parse-result" class="parse-result"></div>
+            </div>
+
+            <!-- 在庫一覧タブ -->
+            <div id="inventory-tab" class="tab-content">
+                <h2>在庫一覧</h2>
+                <div class="filter-section">
+                    <button class="filter-btn active" data-filter="all">すべて</button>
+                    <button class="filter-btn" data-filter="expiring">期限間近</button>
+                    <button class="filter-btn" data-filter="expired">期限切れ</button>
+                </div>
+                <div id="inventory-list" class="inventory-list"></div>
+            </div>
+
+            <!-- おすそ分けタブ -->
+            <div id="share-tab" class="tab-content">
+                <h2>おすそ分け</h2>
+                <div class="share-sections">
+                    <div class="share-section">
+                        <h3>提供可能な食品</h3>
+                        <div id="shareable-items" class="item-list"></div>
+                    </div>
+                    <div class="share-section">
+                        <h3>マッチング候補</h3>
+                        <div id="matching-list" class="matching-list"></div>
+                    </div>
+                    <div class="share-section">
+                        <h3>取引履歴</h3>
+                        <div id="transaction-history" class="transaction-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- レシピ提案タブ -->
+            <div id="recipe-tab" class="tab-content">
+                <h2>レシピ提案</h2>
+                <div id="available-ingredients" class="ingredients-section">
+                    <h3>利用可能な食材</h3>
+                    <div class="ingredient-tags"></div>
+                </div>
+                <div id="recipe-suggestions" class="recipe-list"></div>
+            </div>
+
+            <!-- 統計タブ -->
+            <div id="stats-tab" class="tab-content">
+                <h2>統計・実績</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>CO₂削減量</h3>
+                        <div class="stat-value">5.2 kg</div>
+                        <div class="stat-desc">今月の削減量</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>食品救済数</h3>
+                        <div class="stat-value">23 個</div>
+                        <div class="stat-desc">今月の救済数</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>節約金額</h3>
+                        <div class="stat-value">¥3,450</div>
+                        <div class="stat-desc">今月の節約額</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>地域貢献度</h3>
+                        <div class="stat-value">A+</div>
+                        <div class="stat-desc">コミュニティランク</div>
+                    </div>
+                </div>
+                <div class="future-features">
+                    <h3>将来の機能（デモ）</h3>
+                    <div class="feature-card">
+                        <h4>📷 冷蔵庫画像認識</h4>
+                        <p>冷蔵庫を撮影するだけで食品を自動登録</p>
+                        <button class="demo-btn">デモを見る</button>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🤖 賞味期限予測AI</h4>
+                        <p>保存環境から実際の鮮度を予測</p>
+                        <button class="demo-btn">デモを見る</button>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📅 カレンダー予約</h4>
+                        <p>空き時間を自動でマッチング</p>
+                        <button class="demo-btn" onclick="showCalendarBooking()">デモを見る</button>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📦 受け渡しボックス</h4>
+                        <p>24時間対応の無人受け渡し</p>
+                        <button class="demo-btn" onclick="showBoxQRCode()">デモを見る</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- モーダル -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- 調整モーダル -->
+    <div id="chat-modal" class="chat-modal">
+        <div class="chat-header">
+            <div>
+                <span id="chat-user-name"></span>との受け渡し調整
+                <span style="font-size: 12px; opacity: 0.8;">🤖 AIアシスタント</span>
+            </div>
+            <button onclick="closeChat()" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">×</button>
+        </div>
+        <div id="chat-messages" class="chat-messages">
+            <div class="system-message">
+                <div class="ai-avatar">🤖</div>
+                <div class="message-content">
+                    受け渡しの調整をお手伝いします。以下から選択してください。
+                </div>
+            </div>
+        </div>
+        <div class="adjustment-panel">
+            <div class="adjustment-section">
+                <h4>📍 受け渡し場所</h4>
+                <div class="location-options">
+                    <button class="option-btn" onclick="selectLocation('station')">🚉 駅前</button>
+                    <button class="option-btn" onclick="selectLocation('supermarket')">🏪 スーパー入口</button>
+                    <button class="option-btn" onclick="selectLocation('park')">🌳 公園</button>
+                    <button class="option-btn" onclick="selectLocation('box')">📦 受け渡しボックス</button>
+                </div>
+            </div>
+            <div class="adjustment-section">
+                <h4>⏰ 受け渡し時間</h4>
+                <div class="time-options">
+                    <button class="option-btn" onclick="selectTime('morning')">午前（9-12時）</button>
+                    <button class="option-btn" onclick="selectTime('afternoon')">午後（12-17時）</button>
+                    <button class="option-btn" onclick="selectTime('evening')">夕方（17-20時）</button>
+                </div>
+            </div>
+            <div class="adjustment-section">
+                <h4>💬 定型メッセージ</h4>
+                <div class="message-templates">
+                    <button class="template-btn" onclick="sendTemplate('thanks')">ありがとうございます</button>
+                    <button class="template-btn" onclick="sendTemplate('please')">よろしくお願いします</button>
+                    <button class="template-btn" onclick="sendTemplate('looking')">楽しみにしています</button>
+                    <button class="template-btn" onclick="sendTemplate('confirm')">確認しました</button>
+                </div>
+            </div>
+            <button class="primary-btn confirm-btn" onclick="confirmAdjustment()">調整内容を確定</button>
+        </div>
+    </div>
+
+    <!-- 新規マッチング通知 -->
+    <div id="new-match-notification" class="new-match-notification" style="display: none;">
+        <h3>🎉 新しいマッチング！</h3>
+        <div id="notification-content"></div>
+        <div class="notification-actions">
+            <button class="primary-btn" onclick="viewMatch()">詳細を見る</button>
+            <button class="action-btn" onclick="dismissNotification()">後で</button>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
