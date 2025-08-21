@@ -80,10 +80,12 @@
                     <div id="map-view" class="view-content">
                         <div class="map-container">
                             <div id="geolonia-map" class="geolonia" 
-                                 data-lat="35.681" 
-                                 data-lng="139.767" 
+                                 data-lat="35.6361" 
+                                 data-lng="139.4463" 
                                  data-zoom="14"
                                  data-marker="off"
+                                 data-geojson="#users-geojson"
+                                 data-cluster="off"
                                  style="width: 100%; height: 600px;">
                             </div>
                         </div>
@@ -226,6 +228,14 @@
         </div>
     </div>
 
+    <!-- GeoJSON データ -->
+    <script id="users-geojson" type="application/json">
+    {
+      "type": "FeatureCollection",
+      "features": []
+    }
+    </script>
+    
     <!-- Geolonia Maps -->
     <script type="text/javascript" src="https://cdn.geolonia.com/v1/embed?geolonia-api-key=YOUR-API-KEY"></script>
     

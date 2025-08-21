@@ -11,6 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     checkExpiringItems();
     updateUI();
+    
+    // GeoJSONデータを初期化
+    initializeGeoJSONData();
 });
 
 function initializeApp() {
@@ -1156,118 +1159,104 @@ function toggleView(viewType) {
     }
 }
 
-// Geolonia地図の初期化
-let mapInstance = null;
-let markers = [];
-
-function initializeMap() {
-    // 地図がすでに初期化されている場合はスキップ
-    if (mapInstance) {
-        updateMarkers();
-        return;
-    }
+// GeoJSONデータの初期生成
+function initializeGeoJSONData() {
+    const myInventory = appState.inventory.map(item => item.name);
     
-    // Geoloniaの地図初期化を待つ
-    setTimeout(() => {
-        const mapElement = document.getElementById('geolonia-map');
-        if (mapElement && window.geolonia) {
-            // 地図インスタンスを取得
-            mapInstance = mapElement.geolonia;
-            
-            // 現在位置を設定（デモ用）
-            const myLat = 35.681;
-            const myLng = 139.767;
-            
-            // 自分の位置マーカー
-            addMapMarker(myLat, myLng, {
-                name: 'あなたの位置',
-                icon: '📍',
-                isMyLocation: true
-            });
-            
-            // マッチング候補のマーカーを追加
-            const myInventory = appState.inventory.map(item => item.name);
-            
-            dummyUsers.forEach(user => {
-                // マッチ度計算
-                const matchingNeeds = user.needs.filter(need => myInventory.includes(need));
-                const needsMatchScore = (matchingNeeds.length / user.needs.length) * 100;
-                const giveBalance = user.givePoints - user.takePoints;
-                const totalMatchScore = Math.round(
-                    (needsMatchScore * 0.5) + 
-                    (Math.min(giveBalance / 10, 50) * 0.3) + 
-                    20 // 距離スコア
-                );
-                
-                // マーカーの色を決定
-                let markerColor = '#dc3545'; // 赤
-                if (totalMatchScore >= 80) markerColor = '#28a745'; // 緑
-                else if (totalMatchScore >= 60) markerColor = '#ffc107'; // 黄
-                
-                addMapMarker(user.lat, user.lng, {
-                    ...user,
-                    matchScore: totalMatchScore,
-                    matchingNeeds: matchingNeeds,
-                    markerColor: markerColor
-                });
-            });
+    // 現在位置を設定（多摩市役所）
+    const myLat = 35.6361;
+    const myLng = 139.4463;
+    
+    // GeoJSON features配列を作成
+    const features = [];
+    
+    // 自分の位置を追加
+    features.push({
+        type: "Feature",
+        properties: {
+            title: "あなたの位置",
+            description: "多摩市市役所",
+            "marker-color": "#007bff",
+            "marker-size": "large",
+            "marker-symbol": "star"
+        },
+        geometry: {
+            type: "Point",
+            coordinates: [myLng, myLat]
         }
-    }, 1000);
-}
-
-// マーカー追加
-function addMapMarker(lat, lng, userData) {
-    if (!mapInstance) return;
+    });
     
-    // カスタムマーカーHTML
-    const markerHtml = userData.isMyLocation ? 
-        `<div style="font-size: 24px;">${userData.icon}</div>` :
-        `<div style="background: ${userData.markerColor}; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">${userData.matchScore}%</div>`;
-    
-    // マーカー要素を作成
-    const el = document.createElement('div');
-    el.innerHTML = markerHtml;
-    
-    // マーカーを地図に追加
-    const marker = new mapboxgl.Marker(el)
-        .setLngLat([lng, lat])
-        .addTo(mapInstance);
-    
-    // ポップアップを追加（自分の位置以外）
-    if (!userData.isMyLocation) {
-        const popupHtml = `
-            <div class="map-popup">
-                <h4>${userData.avatar} ${userData.name}</h4>
-                <div class="user-info-popup">
-                    <p><strong>マッチ度:</strong> ${userData.matchScore}%</p>
-                    <p><strong>距離:</strong> ${userData.distance}</p>
-                    <p><strong>評価:</strong> ⭐${userData.rating}</p>
-                    <p><strong>欲しい食材:</strong> ${userData.needs.join(', ')}</p>
-                    ${userData.matchingNeeds.length > 0 ? 
-                        `<p style="color: #28a745; font-weight: bold;">✅ ${userData.matchingNeeds.join(', ')}を探しています！</p>` : ''}
-                </div>
-                <div class="popup-actions">
-                    <button class="popup-btn primary-btn" onclick="openChat(${userData.id})">調整する</button>
-                    <button class="popup-btn action-btn" onclick="acceptMatch(${userData.id})">マッチング</button>
-                </div>
+    // マッチング候補のマーカーを追加
+    dummyUsers.forEach(user => {
+        // マッチ度計算
+        const matchingNeeds = user.needs.filter(need => myInventory.includes(need));
+        const needsMatchScore = (matchingNeeds.length / user.needs.length) * 100;
+        const giveBalance = user.givePoints - user.takePoints;
+        const totalMatchScore = Math.round(
+            (needsMatchScore * 0.5) + 
+            (Math.min(giveBalance / 10, 50) * 0.3) + 
+            20 // 距離スコア
+        );
+        
+        // マーカーの色を決定
+        let markerColor = '#dc3545'; // 赤
+        if (totalMatchScore >= 80) markerColor = '#28a745'; // 緑
+        else if (totalMatchScore >= 60) markerColor = '#ffc107'; // 黄
+        
+        // ポップアップの内容
+        const description = `
+            <div style="font-size: 14px;">
+                <p><strong>マッチ度:</strong> ${totalMatchScore}%</p>
+                <p><strong>距離:</strong> ${user.distance}</p>
+                <p><strong>場所:</strong> ${user.location || ''}</p>
+                <p><strong>評価:</strong> ⭐${user.rating} (${user.reviews}件)</p>
+                <p><strong>ランク:</strong> ${user.rank}</p>
+                <p><strong>欲しい食材:</strong> ${user.needs.join(', ')}</p>
+                <p><strong>提供可能:</strong> ${user.offers.join(', ')}</p>
+                ${matchingNeeds.length > 0 ? 
+                    `<p style="color: #28a745; font-weight: bold;">✅ ${matchingNeeds.join(', ')}を探しています！</p>` : ''}
             </div>
         `;
         
-        const popup = new mapboxgl.Popup({ offset: 25 })
-            .setHTML(popupHtml);
-        
-        marker.setPopup(popup);
-    }
+        features.push({
+            type: "Feature",
+            properties: {
+                title: `${user.avatar} ${user.name} (${totalMatchScore}%)`,
+                description: description,
+                "marker-color": markerColor,
+                "marker-size": "medium"
+            },
+            geometry: {
+                type: "Point",
+                coordinates: [user.lng, user.lat]
+            }
+        });
+    });
     
-    markers.push(marker);
+    // GeoJSONデータを更新
+    const geojsonData = {
+        type: "FeatureCollection",
+        features: features
+    };
+    
+    // script要素のGeoJSONデータを更新
+    const geojsonScript = document.getElementById('users-geojson');
+    if (geojsonScript) {
+        geojsonScript.textContent = JSON.stringify(geojsonData, null, 2);
+    }
 }
 
-// マーカー更新
-function updateMarkers() {
-    // 既存のマーカーをクリア
-    markers.forEach(marker => marker.remove());
-    markers = [];
+// Geolonia地図の初期化（地図表示切り替え時）
+function initializeMap() {
+    // GeoJSONデータを再生成
+    initializeGeoJSONData();
     
-    // 新しいマーカーを追加
-    initializeMap();
+    // Geoloniaマップが読み込まれるまで少し待つ
+    setTimeout(() => {
+        const mapElement = document.getElementById('geolonia-map');
+        if (mapElement) {
+            // 地図が正しく表示されるように、必要に応じて再描画
+            window.dispatchEvent(new Event('resize'));
+        }
+    }, 500);
 }
